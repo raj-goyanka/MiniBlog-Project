@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+  <div class="col-sm-10">
+     <h1 class="my-5 font-weight-bold">Login</h1>
+     <form action="{% url 'login' %}" method="post" novalidate>
+        {% csrf_token %}
+        {% for fm in form%}
+            <div class="form-group">
+              {{fm.label_tag}}{{fm}}<small class="text-warning">{{ fm.errors | striptags }}</small>
+            </div>    
+        {% endfor %}
+        <input type="submit" value="LogIn" class="btn btn-primary">
+        {% if form.non_field_errors %}
+          {% for error in form.non_field_errors %}
+           <p class="alert alert-danger my-3">{{error}}</p>
+          {% endfor %}
+        {% endif %}
+      </form><br>
+   <span>Not registered yet?</span>
+   <a href="{% url 'signup' %}">Create an account</a>
+  </div>
+{% endblock content %}

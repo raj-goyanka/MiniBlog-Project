@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+  <div class="col-sm-10">
+     <h1 class="my-5 font-weight-bold " style="color:black;">Welcome To Blogger Website</h1>
+     {% for post in posts%}
+     <div class="jumbotron shadow round">
+        <div class="container">
+          <h1 class="display-4 font-weight-bold text-center">{{post.title}}</h1>
+          <p class="lead text-justify font-weight-normal" >{{post.desc}}</p>
+        </div>
+      </div> 
+     {% endfor %}
+  </div>
+{% endblock content %}
