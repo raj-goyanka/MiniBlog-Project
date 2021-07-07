@@ -28,6 +28,7 @@ urlpatterns = [
     path('addpost/',views.add_post,name="addpost"),
     path('updatepost/<int:id>/',views.update_post,name="updatepost"),
     path('deletepost/<int:id>/',views.delete_post,name="deletepost"),
+    path('account_verify/<slug:token>/',views.account_verify,name='account_verify'),
     
 
 

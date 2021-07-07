@@ -1,9 +1,33 @@
-from django.shortcuts import render,HttpResponseRedirect
+from django.shortcuts import redirect, render,HttpResponseRedirect
 from .forms import SignUpForm,LogInForm,PostForm
 from django.contrib import messages
 from django.contrib.auth import authenticate,login,logout
-from .models import Post
+from .models import Post,Contact,Profile
 from django.contrib.auth.models import Group
+from django.core.mail import send_mail
+from django.conf import settings
+import uuid
+
+#For Email Sending.
+def email_sender(email,token,username):
+    subject = 'Verify Email'
+    message = f'''
+      Hello , {username}
+          You registered an account on GitHub Image Fetcher WebSite, before being able to use you account you need to verify that this is your email address by clicking here: http://127.0.0.1:8000/account_verify/{token}/
+                  
+          Kind Regards,Team Goyanka'''
+    #Click On the Link to verify your account http://127.0.0.1:8000/account_verify/{token}/
+    email_from = settings.EMAIL_HOST_USER
+    recipient_list = [email,]
+    send_mail(subject, message, email_from, recipient_list)
+
+#For Account Varification.
+def account_verify(request,token):
+    profile=Profile.objects.filter(token=token).first()
+    profile.verify=True
+    profile.save()
+    messages.success(request,"Your account has been varified , You can LogIn Now")
+    return HttpResponseRedirect('/login/')
 
 # This is HomePage View. 
 def home(request):
@@ -16,7 +40,23 @@ def about(request):
 
 # This is Contact Page View.
 def contact(request):
-    return render(request,'contact.html')
+    if request.method == "POST":
+      user_name=request.POST['name']
+      user_email=request.POST['email']
+      user_add=request.POST['address'] 
+      user_msg=request.POST['msg']
+      contact=Contact(name=user_name,email=user_email,address=user_add,message=user_msg)
+      contact.save()
+      messages.success(request,"We Will Contact You Soon !!")
+      return redirect('/contact/')
+    else:
+      return render(request,'contact.html')   
+
+
+
+
+
+
 
 # This is Dashboard Page View.
 def dashboard(request):
@@ -44,27 +84,39 @@ def user_login(request):
            upass =form.cleaned_data['password']
            user =authenticate(username=uname,password=upass)
            if user is not None:
-              login(request,user)  
-              messages.success(request,"User Logged  in Successfully!!")
-              return HttpResponseRedirect("/dashboard/")
+            profile=Profile.objects.filter(user=user).first()           
+            if profile.verify:
+              login(request, user)
+              return HttpResponseRedirect('/dashboard/')
+            messages.info(request,"You are not varified , Check Your Gmail Account and varify yourself !")
+            return HttpResponseRedirect("/login/")
      else:
       form=LogInForm()
      return render(request,'login.html',{'form':form})
   else:
-       return HttpResponseRedirect("/dashboard/")
+       return user_logout(request)
 
 # This is User SignUp View.
 def user_signup(request):
+  if not request.user.is_authenticated:
     if request.method == "POST":
        form=SignUpForm(request.POST)
        if form.is_valid():
-           messages.success(request,"Congratulation!!!You have become a Author. ")
            user=form.save() 
            group=Group.objects.get(name="Author")
-           user.groups.add(group)     
+           user.groups.add(group)    
+           uid=uuid.uuid4()
+           profile=Profile(user=user,token=uid)
+           profile.save()
+           email_sender(user.email,uid,user.username) 
+           messages.success(request,"Your Account Created Successfully , to Varify your Account Check Your Email !")
+           return redirect('/signup/')
     else :
        form=SignUpForm() 
     return render(request,'signup.html',{'form':form})
+  else:
+      return user_logout(request)
+
 
 # This is AddPost View.
 def add_post(request):

@@ -3,7 +3,17 @@
 
 {% block content %}
   <div class="col-sm-10">
-     <h1 class="my-5 font-weight-bold">Login</h1>
+     <h1 class="my-5 font-weight-bold ">Login <i class="fas fa-sign-in-alt"></i></h1>
+     {% if messages %}
+            {% for msg in messages %}
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+              <strong>{{msg}}</strong>
+              <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            {% endfor %}
+     {% endif %}
      <form action="{% url 'login' %}" method="post" novalidate>
         {% csrf_token %}
         {% for fm in form%}
@@ -11,7 +21,9 @@
               {{fm.label_tag}}{{fm}}<small class="text-warning">{{ fm.errors | striptags }}</small>
             </div>    
         {% endfor %}
-        <input type="submit" value="LogIn" class="btn btn-primary">
+        <div>
+          <input type="submit" value="LogIn" class="btn btn-dark" style="width:100%">
+        </div>
         {% if form.non_field_errors %}
           {% for error in form.non_field_errors %}
            <p class="alert alert-danger my-3">{{error}}</p>
